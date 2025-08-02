@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CodTech E-Learning UI</title>
+    <style>
+        /* --- General Styling --- */
+        :root {
+            --primary-color: #ff6600;
+            --secondary-color: #004a7f;
+            --dark-color: #222;
+            --light-color: #f4f4f4;
+            --bg-color: #fff;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            background-color: var(--light-color);
+            color: var(--dark-color);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 0 20px;
+        }
+
+        /* --- Header / Navigation --- */
+        header {
+            background: var(--dark-color);
+            color: #fff;
+            padding: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        nav h1 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+        
+        nav h1 span {
+            color: var(--primary-color);
+        }
+
+        nav ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+        }
+
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            transition: background 0.3s;
+        }
+
+        nav ul li a:hover, .nav-link.active {
+            background: var(--primary-color);
+            border-radius: 5px;
+        }
+
+        /* --- General View Styling --- */
+        .view {
+            display: none; /* All views hidden by default */
+            padding: 2rem 0;
+        }
+
+        .view.active {
+            display: block; /* Show active view */
+        }
+        
+        .view h2 {
+            border-bottom: 3px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-bottom: 2rem;
+        }
+
+        /* --- Course Listing Page Styling --- */
+        #courses-view .course-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .course-card {
+            background: var(--bg-color);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+
+        .course-card img {
+            width: 100%;
+            height: 170px;
+            object-fit: cover;
+        }
+
+        .course-card-content {
+            padding: 1rem;
+        }
+        
+        .course-card-content h3 {
+            margin-top: 0;
+        }
+
+        /* --- Course Detail Page Styling --- */
+        #course-detail-view .course-layout {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .video-container {
+            flex: 2;
+        }
+        
+        .video-container iframe {
+            width: 100%;
+            min-height: 450px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        
+        .course-curriculum {
+            flex: 1;
+            background: var(--bg-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            align-self: flex-start;
+        }
+        
+        .lesson-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .lesson-item {
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .lesson-item:hover, .lesson-item.active {
+            background-color: #f0f0f0;
+        }
+        
+        .lesson-item.completed span::after {
+            content: ' ✔️';
+            color: green;
+        }
+
+        #markCompleteBtn {
+            display: block;
+            width: 100%;
+            padding: 0.8rem;
+            margin-top: 1rem;
+            border: none;
+            background: var(--secondary-color);
+            color: #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #markCompleteBtn:hover {
+            opacity: 0.9;
+        }
+
+
+        /* --- Dashboard & Progress Bar Styling --- */
+        .progress-bar-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 25px;
+            margin-top: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background-color: var(--primary-color);
+            border-radius: 25px;
+            text-align: center;
+            color: white;
+            line-height: 20px;
+            font-size: 0.8rem;
+            width: 0%; /* Default width */
+            transition: width 0.5s ease-in-out;
+        }
+        
+        /* --- Responsiveness --- */
+        @media (max-width: 768px) {
+            #course-detail-view .course-layout {
+                flex-direction: column;
+            }
+            nav {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <nav class="container">
+            <h1>COD<span>TECH</span></h1>
+            <ul>
+                <li><a href="#" class="nav-link active" data-view="courses-view">Courses</a></li>
+                <li><a href="#" class="nav-link" data-view="dashboard-view">Dashboard</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section id="courses-view" class="view active">
+            <h2>Available Courses</h2>
+            <div class="course-grid">
+            </div>
+        </section>
+
+        <section id="course-detail-view" class="view">
+            <h2 id="course-title"></h2>
+            <div class="course-layout">
+                <div class="video-container">
+                    <iframe id="videoPlayer" 
+                            src="" 
+                            title="Course Video Player" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+                    <button id="markCompleteBtn">Mark as Complete</button>
+                </div>
+                <div class="course-curriculum">
+                    <h3>Lessons</h3>
+                    <ul class="lesson-list">
+                    </ul>
+                    <h4>Course Progress</h4>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar" id="course-progress-bar">0%</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dashboard-view" class="view">
+            <h2>My Learning Dashboard</h2>
+            <div id="dashboard-content">
+            </div>
+        </section>
+    </main>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- DATA ---
+            // In a real app, this would come from an API
+            const courses = [
+                {
+                    id: 'js101',
+                    title: 'JavaScript for Beginners',
+                    instructor: 'Navin Reddy',
+                    thumbnail: 'https://images.unsplash.com/photo-1579468118864-1b9ea3c0db4a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=MnwzNjUyOXwwfDF8c2VhcmNofDR8fGphdmFzY3JpcHR8ZW58MHx8fHwxNjE2Njc5OTU5&ixlib=rb-1.2.1&q=80&w=400',
+                    lessons: [
+                        { id: 'l1', title: 'Introduction', videoId: 'bm0OyhwFDuY' },
+                        { id: 'l2', title: 'Variables', videoId: '9RCuKrze_-k' },
+                        { id: 'l3', title: 'Data Types', videoId: 'Le25I331_yU' },
+                        { id: 'l4', title: 'Threads in Java', videoId: 'KuvkahVyY9E' }
+                    ]
+                },
+                {
+                    id: 'html5',
+                    title: 'Mastering HTML5',
+                    instructor: 'Jane Smith',
+                    thumbnail: 'https://cdn2.percipio.com/public/c/books/73370/cover-images/111faf48-f25b-47b0-8fff-1e8eef9eefda/modality/111faf48-f25b-47b0-8fff-1e8eef9eefda.jpg?width=230&height=230',
+                    lessons: [
+                        { id: 'l1', title: 'HTML Basics', videoId: 'dD2EISBDjWM' },
+                        { id: 'l2', title: 'Creating a first webpage', videoId: '-USAeFpVf_A' },
+                        { id: 'l3', title: 'Creating table', videoId: 'wvR40su_XBM' }
+                    ]
+                },
+                 {
+                    id: 'css3',
+                    title: 'Advanced CSS & Grid',
+                    instructor: 'Peter Jones',
+                    thumbnail: 'https://res.cloudinary.com/dz209s6jk/image/upload/v1718110916/LearningPaths/oexupgyyuusnkigeifms.jpg',
+                    lessons: [
+                        { id: 'l1', title: 'Flexbox Essentials', videoId: 'wsTv9y931o8' },
+                        { id: 'l2', title: 'CSS Grid Layout', videoId: '3T0gjtXRNC0' },
+                        { id: 'l3', title: 'Responsive Design', videoId: '2IV08sP9m3U' }
+                    ]
+                }
+            ];
+            
+
+            // --- STATE & DOM REFERENCES ---
+            // Using localStorage to persist user progress across sessions.
+            let progress = JSON.parse(localStorage.getItem('elearningProgress')) || {};
+            let currentCourseId = null;
+            let currentLessonId = null;
+
+            const views = document.querySelectorAll('.view');
+            const navLinks = document.querySelectorAll('.nav-link');
+            const courseGrid = document.querySelector('#courses-view .course-grid');
+            const courseTitle = document.getElementById('course-title');
+            const videoPlayer = document.getElementById('videoPlayer');
+            const lessonList = document.querySelector('.lesson-list');
+            const markCompleteBtn = document.getElementById('markCompleteBtn');
+            const courseProgressBar = document.getElementById('course-progress-bar');
+            const dashboardContent = document.getElementById('dashboard-content');
+
+
+            // --- FUNCTIONS ---
+            
+            /** Saves progress to localStorage */
+            const saveProgress = () => {
+                localStorage.setItem('elearningProgress', JSON.stringify(progress));
+            };
+            
+            /** Calculates progress for a given course */
+            const calculateProgress = (courseId) => {
+                const course = courses.find(c => c.id === courseId);
+                // If the course is not found or has no lessons, return 0.
+                if (!course || course.lessons.length === 0) return 0;
+                
+                const courseProgress = progress[courseId] || {};
+                const completedCount = Object.values(courseProgress).filter(status => status === 'completed').length;
+                return Math.round((completedCount / course.lessons.length) * 100);
+            };
+
+            /** Renders the list of all courses */
+            const renderCourses = () => {
+                courseGrid.innerHTML = '';
+                courses.forEach(course => {
+                    const card = document.createElement('div');
+                    card.className = 'course-card';
+                    card.dataset.courseId = course.id;
+                    const percentage = calculateProgress(course.id);
+                    card.innerHTML = `
+                        <img src="${course.thumbnail}" alt="${course.title}">
+                        <div class="course-card-content">
+                            <h3>${course.title}</h3>
+                            <p>By ${course.instructor}</p>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: ${percentage}%;">${percentage}%</div>
+                            </div>
+                        </div>
+                    `;
+                    card.addEventListener('click', () => showCourseDetail(course.id));
+                    courseGrid.appendChild(card);
+                });
+            };
+            
+            /** Renders the user's dashboard */
+            const renderDashboard = () => {
+                dashboardContent.innerHTML = '';
+                // Check if there are any courses with progress
+                const startedCourses = courses.filter(course => progress[course.id]);
+
+                if (startedCourses.length === 0) {
+                     dashboardContent.innerHTML = '<p>You have not started any courses yet. Go to the courses page to enroll!</p>';
+                     return;
+                }
+                
+                startedCourses.forEach(course => {
+                    const percentage = calculateProgress(course.id);
+                    const courseDiv = document.createElement('div');
+                    courseDiv.className = 'course-card';
+                    courseDiv.innerHTML = `
+                        <div class="course-card-content">
+                            <h3>${course.title}</h3>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: ${percentage}%;">${percentage}%</div>
+                            </div>
+                        </div>
+                    `;
+                    dashboardContent.appendChild(courseDiv);
+                });
+            };
+
+            /** Displays a specific view and hides others */
+            const showView = (viewId) => {
+                // Remove active class from all views and nav links
+                views.forEach(view => view.classList.remove('active'));
+                navLinks.forEach(link => link.classList.remove('active'));
+                
+                // Show the requested view
+                const targetView = document.getElementById(viewId);
+                if (targetView) {
+                    targetView.classList.add('active');
+                }
+                
+                // Set the active class on the corresponding nav link
+                const targetNavLink = document.querySelector(`.nav-link[data-view="${viewId}"]`);
+                if (targetNavLink) {
+                    targetNavLink.classList.add('active');
+                }
+                
+                // Call render functions for the active view
+                if (viewId === 'courses-view') renderCourses();
+                if (viewId === 'dashboard-view') renderDashboard();
+            };
+
+            /** Displays the detail page for a specific course */
+            const showCourseDetail = (courseId) => {
+                currentCourseId = courseId;
+                const course = courses.find(c => c.id === courseId);
+                if (!course) return;
+
+                // First, ensure the 'courses-view' nav link is active
+                showView('courses-view');
+                
+                // Now, hide the courses list and show the course detail
+                document.getElementById('courses-view').classList.remove('active');
+                document.getElementById('course-detail-view').classList.add('active');
+
+                courseTitle.textContent = course.title;
+                lessonList.innerHTML = '';
+                course.lessons.forEach(lesson => {
+                    const li = document.createElement('li');
+                    li.className = 'lesson-item';
+                    li.dataset.lessonId = lesson.id;
+                    li.dataset.videoId = lesson.videoId;
+                    
+                    const isCompleted = progress[courseId]?.[lesson.id] === 'completed';
+                    if (isCompleted) {
+                        li.classList.add('completed');
+                    }
+                    
+                    li.innerHTML = `<span>${lesson.title}</span>`;
+                    lessonList.appendChild(li);
+                });
+
+                // Set initial video and state
+                const firstLesson = course.lessons[0];
+                if (firstLesson) {
+                    currentLessonId = firstLesson.id;
+                    videoPlayer.src = `https://www.youtube.com/embed/${firstLesson.videoId}`;
+                }
+                
+                updateCourseDetailUI();
+            };
+            
+            /** Updates the UI on the course detail page (progress, active lesson) */
+            const updateCourseDetailUI = () => {
+                 if (!currentCourseId) return;
+                 
+                 // Update progress bar
+                 const percentage = calculateProgress(currentCourseId);
+                 courseProgressBar.style.width = `${percentage}%`;
+                 courseProgressBar.textContent = `${percentage}%`;
+                 
+                 // Update lesson list visuals
+                 const lessonItems = lessonList.querySelectorAll('.lesson-item');
+                 lessonItems.forEach(item => {
+                     const lessonId = item.dataset.lessonId;
+                     item.classList.remove('active', 'completed');
+                     
+                     if (progress[currentCourseId]?.[lessonId] === 'completed') {
+                         item.classList.add('completed');
+                     }
+                     if (lessonId === currentLessonId) {
+                         item.classList.add('active');
+                     }
+                 });
+            };
+
+
+            // --- EVENT LISTENERS ---
+
+            // Navigation link clicks
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    showView(e.target.dataset.view);
+                });
+            });
+
+            // Lesson item click
+            lessonList.addEventListener('click', (e) => {
+                const lessonItem = e.target.closest('.lesson-item');
+                if (lessonItem) {
+                    currentLessonId = lessonItem.dataset.lessonId;
+                    const videoId = lessonItem.dataset.videoId;
+                    videoPlayer.src = `https://www.youtube.com/embed/${videoId}`;
+                    updateCourseDetailUI();
+                }
+            });
+            
+            // Mark as Complete button click
+            markCompleteBtn.addEventListener('click', () => {
+                if (!currentCourseId || !currentLessonId) return;
+                
+                // Initialize course progress if not present
+                if (!progress[currentCourseId]) {
+                    progress[currentCourseId] = {};
+                }
+                
+                // Mark lesson as complete and save
+                progress[currentCourseId][currentLessonId] = 'completed';
+                saveProgress();
+                
+                // Update UI
+                updateCourseDetailUI();
+            });
+
+
+            // --- INITIALIZATION ---
+            showView('courses-view'); // Start on the courses page
+
+        });
+    </script>
+</body>
+</html>
